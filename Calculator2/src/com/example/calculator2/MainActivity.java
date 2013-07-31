@@ -2,17 +2,28 @@ package com.example.calculator2;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
 
 
 public class MainActivity extends Activity {
+	public static final String PREFS_NAME = "MyPrefsFiless";
 	static final String LOG_TAG ="MAIN ACTIVITY";
 	GridView gridview;
 	TextView textView;
 	String textEquation = "";
-	static boolean showTest = false;
+	static String storeResult = "";
+	char operation;
+	Button btn;
+	static int countHistory = 0;
+	static boolean refreshResult = false;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -21,9 +32,38 @@ public class MainActivity extends Activity {
 
 		gridview = (GridView) findViewById(R.id.gridView1);  
 		textView = (TextView) findViewById(R.id.editText);
-
-		gridview.setAdapter(new ButtonAdapter(this));		
+		
+		
+		gridview.setAdapter(new ButtonAdapter(this));	
+		btn = (Button) findViewById(R.id.historyBtn);
+		btn.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+		//	startActivity(new Intent(MainActivity.this, SecondActivity.class));
+				startActivityForResult(intent, 101);
+		}
+	});
+}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		if (requestCode == 101 && resultCode == Activity.RESULT_OK) {	
+			String result = data.getStringExtra("result");
+			textView.setText(result);
+		}
 	}
+	
+	public void saveHistory(String saveResult) {
+		SharedPreferences setting = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = setting.edit();
+		editor.putString("resultHistory", saveResult);	
+		editor.commit();
+		}
+		
 	private double getLeftNum (int position) {
 		String strNumTemp = "";
 		
@@ -55,52 +95,99 @@ public class MainActivity extends Activity {
 		
 		return Double.parseDouble(strNumTemp);
 	}
-	
-	public void onCalculatorButtonClicked(String text) {
-		double firNum, secNum, result = 0;
+	private double calculateNumber() {
+		double firNum, secNum, total = 0;
 		
-		if (showTest) {
+		for (int index = 1; index < textEquation.length(); index++) {
+			if (textEquation.charAt(index) == '*') {
+				firNum = getLeftNum(index);
+				secNum = getRightNum(index);
+				total = firNum * secNum;
+			
+			}
+			else if (textEquation.charAt(index) == '/') {
+				firNum = getLeftNum(index);
+				secNum = getRightNum(index);
+				total = firNum / secNum;
+	
+			}
+			else if (textEquation.charAt(index) == '-') {
+				firNum = getLeftNum(index);
+				secNum = getRightNum(index);
+				total = firNum - secNum;			
+			}
+			else if (textEquation.charAt(index) == '+') {
+				firNum = getLeftNum(index);
+				secNum = getRightNum(index);
+				total = firNum + secNum;
+			}
+		}
+		return total;
+	}
+	private int checkFormatOfEquation(String equation) {
+		int flag = 0;
+		if (equation.endsWith("+") || equation.endsWith("-") 
+				|| equation.endsWith("*") || equation.endsWith("/")) {
+			return 0; // if last character contains operator return 0
+		}
+		for (int x = 1; x < equation.length(); x++) {
+			if (equation.charAt(x) == '-')
+				flag++;
+			if (equation.charAt(x) == '+')
+				flag++;
+			if (equation.charAt(x) == '*')
+				flag++;
+			if (equation.charAt(x) == '/')
+				flag++;
+		}
+		return flag; // check for more than one operators
+	}
+	public void onCalculatorButtonClicked(String text) {
+		double result;
+		String[] tempStr;
+		
+		if (refreshResult) {
 			if (Character.isDigit(text.charAt(0)))
 				textEquation = "";
-				
-			showTest = false;
-	//		Log.i(LOG_TAG, text.charAt(0)+"");
+			refreshResult = false;
 		}
-		
 		if (text.equals("AC")) {
 			textView.setText("");
 			textEquation = "";
 		}
 		else if (text.equals("=")) {
-			for (int index = 1; index < textEquation.length(); index++) {
-				if (textEquation.charAt(index) == '*') {
-					firNum = getLeftNum(index);
-					secNum = getRightNum(index);
-					result = firNum * secNum;
-				}
-				else if (textEquation.charAt(index) == '/') {
-					firNum = getLeftNum(index);
-					secNum = getRightNum(index);	
-					result = firNum / secNum;
-				}
-				else if (textEquation.charAt(index) == '-') {
-					firNum = getLeftNum(index);
-					secNum = getRightNum(index);	
-					result = firNum - secNum;
-				}
-				else if (textEquation.charAt(index) == '+') {
-					firNum = getLeftNum(index);
-					secNum = getRightNum(index);
-					result = firNum + secNum;
+			// check if is empty, don't calculate 
+			// if user enters wrong format of equation don't calculate
+			if (!textEquation.isEmpty()) {
+				if (checkFormatOfEquation(textEquation) == 1) {
+					result = calculateNumber();
+					
+					textView.setText("" + result); 
+					textEquation = result + "";
+					refreshResult = true;
+					storeResult = storeResult.concat(textEquation) + ",";
+				
+					if (countHistory == 9) {
+						tempStr = storeResult.split("[,]");
+						tempStr[0] = "";
+						storeResult = "";
+						for (int x = 1; x < tempStr.length; x++) {
+							storeResult = storeResult.concat(tempStr[x]) + ",";
+						}
+						countHistory--;
+					}
+					
+					saveHistory(storeResult);
+					
+					countHistory++;
 				}
 			}
-			textView.setText("" + result);
-			textEquation = result + "";
-			showTest = true;
-		}
+			
+			}
 		else if (text.equals("Delete")) {
-			textEquation = textEquation.substring(0, textEquation.length()-1);
-			textView.setText(textEquation);
+			if (!textEquation.isEmpty())
+				textEquation = textEquation.substring(0, textEquation.length()-1);
+				textView.setText(textEquation);
 		}
 		else {
 			textEquation = textEquation.concat(text);

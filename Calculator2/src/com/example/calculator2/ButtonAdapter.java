@@ -12,11 +12,11 @@ public class ButtonAdapter extends BaseAdapter {
     protected static final String LOG_TAG = "ButtonAdapter";
 	private MainActivity mContext;  
     public String[] numPad = {   
-            "AC","Delete",
-            "7", "8","9","-",
+            "AC","Delete", "=","/" ,
+            "7", "8","9","*",
             "4","5","6","+",
-            "1","2","3","*",
-            "0",".","=","/",
+            "1","2","3","-",
+            "0",".",
             };  
     
     // Gets the context so it can be used later  
@@ -47,10 +47,8 @@ public class ButtonAdapter extends BaseAdapter {
      Button btn;  
 
      if (convertView == null) {
-
-      // if it's not recycled, initialize some attributes  
       btn = new Button(mContext);
-      btn.setLayoutParams(new GridView.LayoutParams(100, 100));     
+      btn.setLayoutParams(new GridView.LayoutParams(100, 85));     
       btn.setPadding(8, 8, 8, 8);     
       }
      
@@ -65,7 +63,6 @@ public class ButtonAdapter extends BaseAdapter {
 		
 		@Override
 		public void onClick(View v) {
-		//	Log.i(LOG_TAG, "Item Clicked");
 			mContext.onCalculatorButtonClicked(numPad[position]);
 		}
 	});

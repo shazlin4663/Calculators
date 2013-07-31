@@ -7,27 +7,37 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
-
+   
     <TextView
         android:id="@+id/editText"
         android:layout_width="match_parent"
         android:layout_height="100dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="@color/lime"
         android:gravity="right"
         android:paddingTop="30dp"
-        android:textSize="40sp"
-        android:background="@color/lime"
-        android:textColor="@color/red" />
-    <GridView
+        android:textColor="@color/red"
+        android:textSize="37sp" />
+    
+ 	<GridView
         android:id="@+id/gridView1"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
+        android:layout_height="280dp"
+        android:layout_below="@id/editText"
         android:columnWidth="50dp"
         android:gravity="center"
-        android:layout_below = "@id/editText"
         android:numColumns="4"
         android:stretchMode="columnWidth" >
     </GridView>
+    
+    <Button
+        android:id="@+id/historyBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="33dp"
+        android:layout_below="@id/gridView1"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="@string/historyButton" />
 
 </RelativeLayout>
